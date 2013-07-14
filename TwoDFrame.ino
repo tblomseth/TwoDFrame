@@ -27,7 +27,7 @@ void loop()
             case IR_NEXT_BUTTON: Serial.println("NEXT_BUTTON");break;
             case IR_MINUS_BUTTON: Serial.println("MINUS_BUTTON");break;
             case IR_CLR_BUTTON: Serial.println("CLR_BUTTON");break;
-            case IR_BUTTON_0: Serial.println("BUTTON_0");break;
+            case IR_BUTTON_0: Serial.println("BUTTON_0"); drawCircle(); break;
             case IR_BUTTON_1: Serial.println("BUTTON_1");break;
             case IR_BUTTON_2: Serial.println("BUTTON_2");break;
             case IR_BUTTON_3: Serial.println("BUTTON_3");break;
@@ -147,4 +147,38 @@ void measureMotorSpeed() {
   delay( 1470 );
   baseShieldMotorDriver.stopMotor1(); 
   
+}
+
+void drawCircle() {
+  int high = (int) 255 * sin( 0.25 * PI );
+  int low =  (int) 255 * ( 1 - cos( 0.25 * PI ));
+  int interval = 800;
+  baseShieldMotorDriver.runMotor1( - high );
+  baseShieldMotorDriver.runMotor2( low );
+  delay( interval );
+  baseShieldMotorDriver.runMotor1( - low );
+  baseShieldMotorDriver.runMotor2( high );
+  delay( interval );
+  baseShieldMotorDriver.runMotor1( low );
+  baseShieldMotorDriver.runMotor2( high );
+  delay( interval );
+  baseShieldMotorDriver.runMotor1( high );
+  baseShieldMotorDriver.runMotor2( low );
+  delay( interval );
+
+  baseShieldMotorDriver.runMotor1( high );
+  baseShieldMotorDriver.runMotor2( - low );
+  delay( interval );
+  baseShieldMotorDriver.runMotor1( low );
+  baseShieldMotorDriver.runMotor2( - high );
+  delay( interval );
+  baseShieldMotorDriver.runMotor1( - low );
+  baseShieldMotorDriver.runMotor2( - high );
+  delay( interval );
+  baseShieldMotorDriver.runMotor1( - high );
+  baseShieldMotorDriver.runMotor2( - low );
+  delay( interval );
+
+
+  baseShieldMotorDriver.stopMotors();
 }
