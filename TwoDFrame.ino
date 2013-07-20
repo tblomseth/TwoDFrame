@@ -28,8 +28,8 @@ void loop()
             case IR_MINUS_BUTTON: Serial.println("MINUS_BUTTON");break;
             case IR_CLR_BUTTON: Serial.println("CLR_BUTTON");break;
             case IR_BUTTON_0: Serial.println("BUTTON_0"); drawCircle(); break;
-            case IR_BUTTON_1: Serial.println("BUTTON_1");break;
-            case IR_BUTTON_2: Serial.println("BUTTON_2");break;
+            case IR_BUTTON_1: Serial.println("BUTTON_1"); drawCircleWithSegments( 8 ); break;
+            case IR_BUTTON_2: Serial.println("BUTTON_2"); drawSpiral(); break;
             case IR_BUTTON_3: Serial.println("BUTTON_3");break;
             case IR_BUTTON_4: Serial.println("BUTTON_4"); drawSquare(); break;
             case IR_BUTTON_5: Serial.println("BUTTON_5");break;
@@ -181,4 +181,62 @@ void drawCircle() {
 
 
   baseShieldMotorDriver.stopMotors();
+}
+
+void drawCircleWithSegments(int noOfSegments) {
+  int interval = 80; // in ms
+  float radiansPerSegment = 2 * PI / noOfSegments;
+  int mxSpeed;
+  int mySpeed;
+  for ( int i = 1; i <= noOfSegments; i++ ) {
+    Serial.println( "i = " ); Serial.println( i );
+    float currentPointX = cos( ( i - 1 ) * radiansPerSegment );
+    Serial.println( "currentPointX = " ); Serial.println( currentPointX );
+    float currentPointY = sin( ( i - 1 ) * radiansPerSegment );
+    Serial.println( "currentPointY = " ); Serial.println( currentPointY );
+    float nextPointX = cos( i * radiansPerSegment );
+    Serial.println( "nextPointX = " ); Serial.println( nextPointX );
+    float nextPointY = sin( i * radiansPerSegment );
+    Serial.println( "nextPointY = " ); Serial.println( nextPointY );
+    float deltaX = nextPointX - currentPointX;
+    Serial.println( "deltaX = " ); Serial.println( deltaX );
+    float deltaY = nextPointY - currentPointY;
+    Serial.println( "deltaY = " ); Serial.println( deltaY );
+    int mxDirection = deltaX / abs( deltaX );
+    Serial.println( "mxDirection = " ); Serial.println( mxDirection );
+    int myDirection = deltaY / abs( deltaY );
+    Serial.println( "myDirection = " ); Serial.println( myDirection );
+    if ( abs( deltaX ) >= abs( deltaY ) ) {
+      mxSpeed = mxDirection * 255;
+      Serial.println( "mxSpeed = " ); Serial.println( mxSpeed );      
+      mySpeed = (int) myDirection * ( 255 * abs( deltaY ) ) / abs( deltaX );
+      Serial.println( "mySpeed = " ); Serial.println( mySpeed );
+    } else {
+      mxSpeed = (int) mxDirection * ( 255 * abs( deltaX ) ) / abs( deltaY );
+      Serial.println( "mxSpeed = " ); Serial.println( mxSpeed );
+      mySpeed = myDirection * 255;
+      Serial.println( "mySpeed = " ); Serial.println( mySpeed );
+    }
+    baseShieldMotorDriver.runMotor1( mxSpeed );
+    baseShieldMotorDriver.runMotor2( mySpeed );
+    delay( interval );
+    baseShieldMotorDriver.stopMotors();
+    //delay( 100 );
+  }
+  baseShieldMotorDriver.stopMotors();  
+}
+
+void drawSpiral() {
+  drawCircleWithSegments( 96 );
+  drawCircleWithSegments( 88 ); 
+  drawCircleWithSegments( 80 );   
+  drawCircleWithSegments( 72 ); 
+  drawCircleWithSegments( 64 );   
+  drawCircleWithSegments( 56 );   
+  drawCircleWithSegments( 48 );   
+  drawCircleWithSegments( 40 );
+  drawCircleWithSegments( 32 );
+  drawCircleWithSegments( 24 );
+  drawCircleWithSegments( 16 );
+  drawCircleWithSegments( 8 );  
 }
