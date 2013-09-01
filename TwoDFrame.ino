@@ -1,8 +1,13 @@
 #include <Me_BaseShield.h>
 #include <Me_BaseShieldMotorDriver.h>
 #include <Me_InfraredReceiver.h>
+
+Me_BaseShield baseShield;
 Me_BaseShieldMotorDriver baseShieldMotorDriver;
 Me_InfraredReceiver infraredReceiver;
+
+int motorOneDirection = 0;
+int motorTwoDirection = 0;
 
 void setup() {  
   infraredReceiver.begin();
@@ -12,6 +17,15 @@ void setup() {
 
 void loop()
 {
+  // Check micro switch motor one
+  
+  int microSwitchOneInput = baseShield.readMePortOutsidePin( PORT_8 );
+  if ( microSwitchOneInput == LOW ) {
+    //Serial.println( "microSwitchOneInput == LOW " );
+    //baseShieldMotorDriver.stopMotor1();
+  } else {
+    //Serial.println( "microSwitchOneInput == HIGH " ); 
+  }
     int key = infraredReceiver.read();
     if(key>=0)
     {
@@ -32,14 +46,19 @@ void loop()
             case IR_BUTTON_2: Serial.println("BUTTON_2"); drawSpiral(); break;
             case IR_BUTTON_3: Serial.println("BUTTON_3");break;
             case IR_BUTTON_4: Serial.println("BUTTON_4"); drawSquare(); break;
-            case IR_BUTTON_5: Serial.println("BUTTON_5");break;
-            case IR_BUTTON_6: Serial.println("BUTTON_6");break;
+            case IR_BUTTON_5: Serial.println("BUTTON_5"); initializeMotorOne(); break;
+            case IR_BUTTON_6: Serial.println("BUTTON_6"); cycleMotorOne();break;
             case IR_BUTTON_7: Serial.println("BUTTON_7");break;
             case IR_BUTTON_8: Serial.println("BUTTON_8"); drawHourGlass(); break;
             case IR_BUTTON_9: Serial.println("BUTTON_9");break;
             default:break;
         }
     }
+}
+
+void initializeMotorOne() {
+  //baseShieldMotorDriver.runMotor1( -100 );
+  runMotorOneToStop( -1, 200 );
 }
 
 void drawSquare() {
@@ -184,7 +203,7 @@ void drawCircle() {
 }
 
 void drawCircleWithSegments(int noOfSegments) {
-  int interval = 80; // in ms
+  int interval = 25; // in ms
   float radiansPerSegment = 2 * PI / noOfSegments;
   int mxSpeed;
   int mySpeed;
@@ -239,4 +258,63 @@ void drawSpiral() {
   drawCircleWithSegments( 24 );
   drawCircleWithSegments( 16 );
   drawCircleWithSegments( 8 );  
+}
+
+void cycleMotorOne() {
+  int microSwitchOneInput = LOW;
+  int direction = 0;
+  /*  
+  baseShieldMotorDriver.runMotor1( -100 );
+  while ( true ) {
+    microSwitchOneInput = baseShield.readMePortOutsidePin( PORT_8 );
+    if ( microSwitchOneInput == LOW ) {
+      baseShieldMotorDriver.stopMotor1();
+      break;  
+    }
+    delay( 50 );
+  }
+  Serial.println( "About to wait" );
+  delay( 1000 );
+  Serial.println( "About to run motor one" );
+  baseShieldMotorDriver.runMotor1( 100 );
+  delay( 200 );
+  while ( true ) {
+    microSwitchOneInput = baseShield.readMePortOutsidePin( PORT_8 );
+    if ( microSwitchOneInput == LOW ) {
+      baseShieldMotorDriver.stopMotor1();
+      break;  
+    }
+    delay( 50 );
+  }
+  */
+  //while (true ) {
+  for (int i = 0; i < 5; i++) {
+    Serial.println( "Cycle" );
+    Serial.println( i );
+    runMotorOneToStop( -1, 255 );
+    runMotorOneToStop( 1, 255 );
+  }
+}
+
+void runMotorOneToStop(int direction, int speed) {
+  int microSwitchOneInput = LOW;
+  unsigned long start = millis();
+  while ( true ) {
+    microSwitchOneInput = baseShield.readMePortOutsidePin( PORT_8 );
+    if (  microSwitchOneInput == HIGH ) {
+      baseShieldMotorDriver.runMotor1( direction * speed );
+      motorOneDirection = direction;
+    } else if ( microSwitchOneInput == LOW ) {
+      if ( direction == motorOneDirection ) {
+        baseShieldMotorDriver.stopMotor1();
+        break;
+      } else 
+        baseShieldMotorDriver.runMotor1( direction * speed );
+        motorOneDirection = direction;
+        delay( 200 );
+     }
+     delay( 50 );
+   }
+   Serial.println( "Run duration = ");
+   Serial.println( millis() - start );
 }
