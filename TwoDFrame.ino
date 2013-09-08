@@ -1,18 +1,22 @@
 #include <Me_BaseShield.h>
 #include <Me_BaseShieldMotorDriver.h>
 #include <Me_InfraredReceiver.h>
+#include <Me_UltrasonicSensor.h>
 
 Me_BaseShield baseShield;
 Me_BaseShieldMotorDriver baseShieldMotorDriver;
-Me_InfraredReceiver infraredReceiver;
-
+Me_InfraredReceiver infraredReceiver; /* Note: As the code need to use interrupt 0, it works only when the Me - Infrared Receiver module is connected to the port 4(PORT_4) of Me - Base Shield. */
+Me_UltrasonicSensor ultraSensorOne( 7 ); //Ultrasonic module can ONLY be connected to port 3, 4, 5, 6, 7, 8 of base shield.
+                                
 int motorOneDirection = 0;
 int motorTwoDirection = 0;
 
 void setup() {  
-  infraredReceiver.begin();
+  //infraredReceiver.begin();
   Serial.begin(9600);  
   baseShieldMotorDriver.begin();
+  ultraSensorOne.begin();
+  cycleMotorOne();
 }
 
 void loop()
@@ -26,7 +30,8 @@ void loop()
   } else {
     //Serial.println( "microSwitchOneInput == HIGH " ); 
   }
-    int key = infraredReceiver.read();
+    int key = -1; 
+    //int key = infraredReceiver.read();
     if(key>=0)
     {
         switch (key)
@@ -54,6 +59,12 @@ void loop()
             default:break;
         }
     }
+    
+     if ( millis() % 200 < 50 ) {
+       Serial.print("Distance : ");
+       Serial.print(ultraSensorOne.distanceCm());
+       Serial.println(" cm");
+     }
 }
 
 void initializeMotorOne() {
@@ -314,6 +325,9 @@ void runMotorOneToStop(int direction, int speed) {
         delay( 200 );
      }
      delay( 50 );
+     Serial.print("Distance : ");
+     Serial.print(ultraSensorOne.distanceCm());
+     Serial.println(" cm");
    }
    Serial.println( "Run duration = ");
    Serial.println( millis() - start );
