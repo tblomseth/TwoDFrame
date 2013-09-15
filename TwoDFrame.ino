@@ -2,36 +2,49 @@
 #include <Me_BaseShieldMotorDriver.h>
 #include <Me_InfraredReceiver.h>
 #include <Me_UltrasonicSensor.h>
+#include <Servo.h>
+#include <Me_ServoDriver.h>
 
 Me_BaseShield baseShield;
 Me_BaseShieldMotorDriver baseShieldMotorDriver;
 Me_InfraredReceiver infraredReceiver; /* Note: As the code need to use interrupt 0, it works only when the Me - Infrared Receiver module is connected to the port 4(PORT_4) of Me - Base Shield. */
 Me_UltrasonicSensor ultraSensorOne( 7 ); //Ultrasonic module can ONLY be connected to port 3, 4, 5, 6, 7, 8 of base shield.
+Me_ServoDriver servoDriver( PORT_2 ); //can ONLY be PORT_1,PORT_2
                                 
 int motorOneDirection = 0;
 int motorTwoDirection = 0;
 
+int servoOneAngle = -1;
+int servoOneInitialPosition = 94;
+
 void setup() {  
-  //infraredReceiver.begin();
+  infraredReceiver.begin();
   Serial.begin(9600);  
   baseShieldMotorDriver.begin();
   ultraSensorOne.begin();
-  cycleMotorOne();
+  // Initialize servo driver:
+  servoDriver.Servo1_begin();
+  servoDriver.writeServo1( servoOneInitialPosition );
 }
 
 void loop()
 {
   // Check micro switch motor one
-  
   int microSwitchOneInput = baseShield.readMePortOutsidePin( PORT_8 );
   if ( microSwitchOneInput == LOW ) {
-    //Serial.println( "microSwitchOneInput == LOW " );
+    Serial.println( "microSwitchOneInput == LOW " );
     //baseShieldMotorDriver.stopMotor1();
   } else {
     //Serial.println( "microSwitchOneInput == HIGH " ); 
   }
-    int key = -1; 
-    //int key = infraredReceiver.read();
+  
+  // servo 1
+  servoOneAngle = servoDriver.readServo1();
+  Serial.println( "Servo 1 angle = " );
+  Serial.println( servoOneAngle );
+  
+    //int key = -1; 
+    int key = infraredReceiver.read();
     if(key>=0)
     {
         switch (key)
@@ -46,29 +59,36 @@ void loop()
             case IR_NEXT_BUTTON: Serial.println("NEXT_BUTTON");break;
             case IR_MINUS_BUTTON: Serial.println("MINUS_BUTTON");break;
             case IR_CLR_BUTTON: Serial.println("CLR_BUTTON");break;
-            case IR_BUTTON_0: Serial.println("BUTTON_0"); drawCircle(); break;
-            case IR_BUTTON_1: Serial.println("BUTTON_1"); drawCircleWithSegments( 8 ); break;
+            case IR_BUTTON_0: Serial.println("BUTTON_0"); break;// drawCircle(); break;
+            case IR_BUTTON_1: Serial.println("BUTTON_1"); drawCircleWithSegments( 96 ); break;
             case IR_BUTTON_2: Serial.println("BUTTON_2"); drawSpiral(); break;
-            case IR_BUTTON_3: Serial.println("BUTTON_3");break;
+            case IR_BUTTON_3: Serial.println("BUTTON_3"); lowerPen(); break;
             case IR_BUTTON_4: Serial.println("BUTTON_4"); drawSquare(); break;
             case IR_BUTTON_5: Serial.println("BUTTON_5"); initializeMotorOne(); break;
             case IR_BUTTON_6: Serial.println("BUTTON_6"); cycleMotorOne();break;
-            case IR_BUTTON_7: Serial.println("BUTTON_7");break;
+            case IR_BUTTON_7: Serial.println("BUTTON_7"); raisePen(); break;
             case IR_BUTTON_8: Serial.println("BUTTON_8"); drawHourGlass(); break;
             case IR_BUTTON_9: Serial.println("BUTTON_9");break;
             default:break;
         }
     }
-    
+   /* 
      if ( millis() % 200 < 50 ) {
-       Serial.print("Distance : ");
-       Serial.print(ultraSensorOne.distanceCm());
-       Serial.println(" cm");
-     }
+       Serial.print( "Distance : " );
+       Serial.print( ultraSensorOne.distanceCm() );
+       Serial.println( " cm" );
+     }*/
+}
+
+void lowerPen() {
+  servoDriver.writeServo1( 105 );
+}
+
+void raisePen() {
+  servoDriver.writeServo1( servoOneInitialPosition );
 }
 
 void initializeMotorOne() {
-  //baseShieldMotorDriver.runMotor1( -100 );
   runMotorOneToStop( -1, 200 );
 }
 
@@ -219,6 +239,7 @@ void drawCircleWithSegments(int noOfSegments) {
   int mxSpeed;
   int mySpeed;
   for ( int i = 1; i <= noOfSegments; i++ ) {
+    if ( i % 2 == 0 ) { raisePen(); } else { lowerPen(); } 
     Serial.println( "i = " ); Serial.println( i );
     float currentPointX = cos( ( i - 1 ) * radiansPerSegment );
     Serial.println( "currentPointX = " ); Serial.println( currentPointX );
